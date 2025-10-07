@@ -9,16 +9,16 @@ run: main
 	./main
 
 clean:
-	rm -f main main.o cipher.o
+	rm -f main main.o rpssl.o
 
-main: main.o cipher.o strings.o
-	gcc -o main main.o cipher.o strings.o
+main: main.o rpssl.o utility.o
+	gcc -o main main.o rpssl.o utility.o
 
 main.o: main.c
 	gcc -o main.o -c $(LDFLAGS) main.c
 
-cipher.o: cipher.c
-	gcc -o cipher.o -c $(LDFLAGS) cipher.c
+rpssl.o: rpssl.c
+	gcc -o rpssl.o -c $(LDFLAGS) rpssl.c
 
-strings.o: strings.c
-	gcc -o strings.o -c $(LDFLAGS) strings.c
+utility.o: utility.c
+	gcc -o utility.o -c $(LDFLAGS) utility.c
