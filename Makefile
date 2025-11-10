@@ -1,4 +1,4 @@
-LDFLAGS=-O2
+LDFLAGS=-O2 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -std=c2y
 
 all: main
 debug: LDFLAGS+=-g
@@ -9,16 +9,13 @@ run: main
 	./main
 
 clean:
-	rm -f main main.o rpssl.o
+	rm -f main main.o
 
-main: main.o rpssl.o utility.o
-	gcc -o main main.o rpssl.o utility.o
+main: main.o
+	gcc -o main $(LDFLAGS) main.o
 
 main.o: main.c
 	gcc -o main.o -c $(LDFLAGS) main.c
-
-rpssl.o: rpssl.c
-	gcc -o rpssl.o -c $(LDFLAGS) rpssl.c
 
 utility.o: utility.c
 	gcc -o utility.o -c $(LDFLAGS) utility.c
