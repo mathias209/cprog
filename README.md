@@ -1,2 +1,4 @@
 # cprog
-Balls and their admierers
+Flowchart og program til lunarlander lavet af Mathias
+
+Uge 1

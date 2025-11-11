@@ -1,26 +1,28 @@
 #include <stdio.h>
-#include "include/sort.h"
 
-#define _countof(array) (sizeof(array) / sizeof(array[0]))
+int Control(int altitude) {
+  int thruster = 0;
 
-int main()
-{
-    int letter_arr1[] = {'z', 'S', 's', 'a'};
-    // aSsz
-    int number_arr1[] = {4, -1, 2, 9};
-    // -1, 2, 4, 9
+  if (altitude <= 100 && altitude > 0)
+      thruster = 1;
 
-    bubble_sort(number_arr1, numbers_in_ascending_order, _countof(number_arr1));
+  return thruster;
+}
 
-    for (int i = 0; i < _countof(number_arr1); i++)
-	printf("%d, ", number_arr1[i]);
-    putchar('\n');
+void Test(int altitude) {
+  int thruster = Control(altitude);
+  int behaviorCorrect = (altitude > 100 && thruster == 0) ||
+                        (altitude <= 100 && altitude > 0 && thruster == 1) ||
+                        (altitude <= 0 && thruster == 0);
+  char *behaviorCorrectIcon = behaviorCorrect ? " OK " : "FAIL";
+  printf("For altitude %3d, your thruster is %d |%s|\n", altitude, thruster,
+         behaviorCorrectIcon);
+}
 
-    bubble_sort(letter_arr1, letters_in_order, _countof(letter_arr1));
-
-    for (int i = 0; i < _countof(letter_arr1); i++)
-	printf("%c, ", letter_arr1[i]);
-    putchar('\n');
-
-    return 0;
+int main(void) {
+  Test(150);
+  Test(100);
+  Test(50);
+  Test(0);
+  Test(-1);
 }
