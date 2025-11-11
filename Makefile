@@ -1,4 +1,4 @@
-LDFLAGS=-O2
+LDFLAGS=-O2 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 targets = $(patsubst %.c,%.o,$(wildcard *.c))
 
