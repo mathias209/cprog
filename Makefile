@@ -1,21 +1,21 @@
-LDFLAGS=-O2 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -std=c2y
+LDFLAGS=-O2
+
+targets = $(patsubst %.c,%.o,$(wildcard *.c))
 
 all: main
-debug: LDFLAGS+=-g
-debug: main
-	gdb main
-	
+
 run: main
 	./main
 
+debug: LDFLAGS+=-g
+debug: main
+	gdb main
+
+main: $(targets)
+	gcc -o main $(LDFLAGS) $(targets)
+
+$(targets): %.o: %.c
+	gcc $(LDFLAGS) -c $< -o $@
+
 clean:
-	rm -f main main.o
-
-main: main.o
-	gcc -o main $(LDFLAGS) main.o
-
-main.o: main.c
-	gcc -o main.o -c $(LDFLAGS) main.c
-
-utility.o: utility.c
-	gcc -o utility.o -c $(LDFLAGS) utility.c
+	rm $(targets) main
