@@ -1,115 +1,140 @@
-#include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <time.h>
+#include <string.h>
+#define LINE_MAX 100
+#define DELIM "," // CSV delimiter
 
-#define WIDTH 400
-#define HEIGHT 400
-#define TITLE "Balls and their admirers"
-#define BALL_COUNT 100
-#define FPS 60
-#define VEL_MAX 5
-#define RADIUS_MAX 20
-#define RADIUS_MIN 5
+char *ifile, *ofile;
+unsigned filter_age_max;
+FILE *istream, *ostream;
 
-#define _countof(array) (sizeof(array) / sizeof(array[0]))
+#define USAGE                                                                  \
+  R"(Filters CSV rows, keeping only those with provided maximum age
+%1$s max-age [input-file] [output-file]
 
-Color COLORS[] = {
-    LIGHTGRAY, GRAY,   DARKGRAY, YELLOW,     GOLD,      ORANGE,  PINK,
-    RED,       MAROON, GREEN,    LIME,       DARKGREEN, SKYBLUE, BLUE,
-    DARKBLUE,  PURPLE, VIOLET,   DARKPURPLE, BEIGE,     BROWN,   DARKBROWN,
-};
+Example: 
+%1$s max-age input.csv output.csv
+%1$s max-age input.csv (output to stdout)
+%1$s max-age           (input from stdin, output to stdout)
+)"
 
-// Definition of Ball
-// Ball stores state and other properties
-typedef struct Ball {
-    int id;
-    int posx;
-    int posy;
-    int velx;
-    int vely;
-    int radius;
-    Color color;
-    struct Ball* follows;
-} Ball;
+void filter_stream(FILE *istream, FILE *ostream) {
+  char line[LINE_MAX];
+  char *fgets_return;
+  char *name, *age_str;
+  size_t line_no = 0;
 
-Ball balls[BALL_COUNT];
+  while (getc(istream) != EOF) {
+    ++line_no;
 
-int rannum(int min, int max)
-{
-    return rand() % (max + 1 - min) + min;
-}
+    // Read a line from `istream` and assign the return value to `fgets_return`
+    // YOUR CODE HERE
+    char c;
+    int i = 0;
+    while((c = getc(istream)) != '\n')
+	line[i++] = c;
+    line[i] = '\0';
+    fgets_return = line;
 
-// Initializes a ball with random values
-Ball *init_ball_random(Ball *p, int id) {
-  // Randomly initialize state and properties
-    p->color = COLORS[rannum(0, 20)];
-    p->posx = rannum(0, WIDTH - 1);
-    p->posy = rannum(0, HEIGHT - 1);
-    p->velx = rannum(1, VEL_MAX - 1);
-    p->vely = rannum(1, VEL_MAX - 1);
-    p->radius = rannum(RADIUS_MIN, RADIUS_MAX);
+    if (fgets_return && *fgets_return != '\n') {
+      if (strlen(line) > 1) {
+        // Assign `name` and `age_str` using `strtok`
+        // YOUR CODE HERE
+	  char templine[LINE_MAX];
+	  strcpy(templine, line);
+	char* pch;
+	name = (pch = strtok(templine, ","));
+	age_str = (pch = strtok(NULL, ","));
+	
 
-    p->id = id;
+        // Alternative to strtok:
+        // sscanf(line, "%*[^,],%d", &age);
 
-  // Find a leading ball other than the initialized ball itself.
-  Ball *leader; // Represents the leading ball that this ball will follow
-  leader = &balls[rannum(0, BALL_COUNT - 1)];
-  p->follows=leader;
+        if (!age_str) {
+          // Error message
+          // YOUR CODE HERE
+	  printf("WARNING: line %ld had no age, skipping...\n", line_no);
+          continue;
+        }
+      }
+    } else {
+      // Error message
+      // YOUR CODE HERE
+      printf("WARNING: line %ld is empty, skipping...\n", line_no);
+      continue;
+    }
 
-  return p;
-}
-
-
-// Initialize all `balls`
-void init_balls_random() {
-    srand(time(NULL));
-    for(int i = 0; i < BALL_COUNT; i++)
-	init_ball_random(&balls[i], i);
-}
-
-Ball *draw_ball(Ball *p) {
-  DrawCircle(p->posx, p->posy, p->radius, p->color);
-  return p;
-}
-
-// Updates the positions of balls according to their velocities
-Ball *update_pos(Ball *p) {
-  p->posx = (WIDTH + p->posx + p->velx) %
-            WIDTH; // `WIDTH +` because C uses truncated division
-  p->posy = (HEIGHT + p->posy + p->vely) % HEIGHT;
-  return p;
-}
-
-// Updates the velocity of a ball so that it follows the leading ball
-Ball *update_vel_for_following(Ball *p) {
-  int errx = p->follows->posx - p->posx;
-  int erry = p->follows->posy - p->posy;
-  p->velx = errx > 0 ? 1 : -1;
-  p->vely = erry > 0 ? 1 : -1;
-  return p;
-}
-
-// Update all elements
-void update_elements() {
-    for (size_t i = 0; i < _countof (balls); ++i) {
-    draw_ball(update_pos(update_vel_for_following(&balls[i])));
+    // Age processing
+    unsigned age;
+    auto recognized_count = sscanf(age_str, "%d", &age);
+    if (recognized_count == 1) {
+      if (age <= filter_age_max) {
+        // Forward input line to `ostream`
+        // YOUR CODE HERE
+	  while (*fgets_return != '\0') {
+	      putc(*fgets_return, ostream);
+	      fgets_return++;
+	  }
+	  putc('\n', ostream);
+      }
+    } else {
+      // Error message
+	printf("WARNING: on line %ld; age is NAN, skipping...\n", line_no);
+    }
   }
 }
 
-int main() {
-  InitWindow(WIDTH, HEIGHT, TITLE);
-  SetTargetFPS(FPS);
-
-  init_balls_random();
-
-
-  while (!WindowShouldClose()) // Detect window close button or ESC key
-  {
-    BeginDrawing();
-    update_elements();
-    ClearBackground(WHITE);
-    EndDrawing();
+int main(int argc, char *argv[]) {
+  switch (argc) {
+  case 4:
+    // max-age ifile ofile
+    ofile = argv[3];
+  case 3:
+    // max-age ifile
+    ifile = argv[2];
+  case 2:
+    // max-age
+    if (!sscanf(argv[1], "%d", &filter_age_max)) {
+      puts("First argument is not an age.");
+      exit(EXIT_FAILURE);
+    }
+    break;
+  default:
+    printf(USAGE, argv[0]);
+    return EXIT_SUCCESS;
   }
+
+  if (ifile) {
+    // Open `ifile` and assign it to `istream`
+    // YOUR CODE HERE
+    istream = fopen(ifile, "r");
+
+    // Exit program with an error message if file cannot be opened
+    // YOUR CODE HERE
+    if(istream == NULL) {
+	printf("ERROR: input file, %s, couldn't open input file, exiting...\n", ifile);
+	return EXIT_FAILURE;
+    }
+  } else {
+    // Set `ostream` if no file provided
+    // istream?
+    // YOUR CODE HERE
+    printf("ERROR: missing input file, exiting...\n");
+    return EXIT_FAILURE;
+  }
+
+  if (ofile) {
+    // Open `ofile` and assign it to `ostream`
+    // YOUR CODE HERE
+
+    // Exit program with an error message if file cannot be opened
+    // YOUR CODE HERE
+  } else {
+    // Set `ostream` if no file provided
+    // YOUR CODE HERE
+      ostream = fopen("out.csv", "w");
+  }
+
+  filter_stream(istream, ostream);
+  return EXIT_SUCCESS;
 }

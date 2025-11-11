@@ -1,2 +1,4 @@
 # cprog
-Balls and their admierers
+remove blank lines from CSV
+
+no piping
