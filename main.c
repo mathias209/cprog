@@ -5,7 +5,6 @@
 int main()
 {
     greedy_tour_from_each_square();
-    tour_greedy_step(1, 0);
 
     return 0;
 }
