@@ -1,4 +1,2 @@
 # cprog
-remove blank lines from CSV
-
-no piping
+Knights tour
