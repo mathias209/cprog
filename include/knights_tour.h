@@ -38,7 +38,6 @@ int move_is_possible(size_t move_id, size_t x, size_t y, size_t visited[SIZE][SI
  * @note An array is created for the attempt
  */
 unsigned int tour_greedy(size_t start_x, size_t start_y);
-void tour_greedy_step(size_t start_x, size_t start_y);
 
 /** Attempts tours beginning from each square available on the board
  * and annotates the number of visited squares like this:

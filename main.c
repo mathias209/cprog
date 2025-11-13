@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include "include/knights_tour.h"
-#include <stdlib.h>
 
 int main()
 {
