@@ -1,4 +1,4 @@
-LDFLAGS=-O2
+LDFLAGS=-O2 -std=c23
 
 targets = $(patsubst %.c,%.o,$(wildcard *.c))
 
