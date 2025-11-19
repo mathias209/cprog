@@ -1,177 +1,88 @@
-#include <ctype.h>
+#include "singly_linked_list.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#define TRACK_TITLE_SIZE 60
 
-#define MAX_WORD_COUNT 15000
-#define MAX_SUCCESSOR_COUNT MAX_WORD_COUNT / 2
-#define RAND(MIN,MAX) rand() % (MAX + 1 - MIN) + MIN
-char book[] = {
-#embed "./pg84.txt" /// Stores the content of the file as an array of chars.
-    , '\0'};      /// Makes `book` a string.
+#define PLAYLIST_IN_PATH "playlist.txt"
+#define PLAYLIST_OUT_PATH "playlist-out.txt"
+// To avoid unnecessary complexity, we fix the filenames instead of getting them
+// through runtime parameters.
 
-/// Array of tokens registered so far.
-/// No duplicates are allowed.
-char *tokens[MAX_WORD_COUNT];
-/// `tokens`'s current size
-size_t tokens_size = 0;
+typedef char Data[TRACK_TITLE_SIZE];
+Node *playlist;
 
-/// Array of successor tokens
-/// One token can have many successor tokens. `succs[x]` corresponds to
-/// `token[x]`'s successors.
-/// We store directly tokens instead of token_ids, because we will directly
-/// print them. If we wanted to delete the book, then it would make more sense
-/// to store `token_id`s
-char *succs[MAX_WORD_COUNT][MAX_SUCCESSOR_COUNT];
-/// `succs`'s current size
-size_t succs_sizes[MAX_WORD_COUNT];
-
-/// Overwrites non-printable characters in `book` with a space.
-/// Non-printable characters may lead to duplicates like
-/// `"\xefthe" and "the"` even both print `the`.
-void replace_non_printable_chars_with_space() {
-    int i = 0;
-    while (book[i] != '\0') {
-	if (!isprint(book[i]))
-	    book[i] = ' ';
-	i++;
-    }
+/// Removes trailing newline from the line, if it exists.
+/// Note: Some lines may not have a newline, e.g., last line in a file,
+/// therefore we have to check for presence.
+char *remove_newline_if_exists(char *line) {
+  // YOUR CODE HERE
+  return line;
 }
 
-/// Returns the id (index) of the token, creating it if necessary.
-///
-/// Returns token id if token exists in \c tokens, otherwise creates a new entry
-/// in \c tokens and returns its token id.
-///
-/// \param token token to look up (or insert)
-/// \return Index of `token` in \c tokens array
-size_t token_id(char *token) {
-  size_t id;
-  for (id = 0; id < tokens_size; ++id) {
-    if (strcmp(tokens[id], token) == 0) {
-      return id;
-    }
-  }
-  tokens[id] = token;
-  ++tokens_size;
-  return id;
-}
-
-/// Appends the token \c succ to the successors list of \c token.
-void append_to_succs(char *token, char *succ) {
-  auto next_empty_index_ptr = &succs_sizes[token_id(token)];
-
-  if (*next_empty_index_ptr >= MAX_SUCCESSOR_COUNT) {
-    printf("Successor array full.");
+/// Reads lines from at `filename`, creates a node for each line and inserts
+/// nodes to `list`.
+Node **load_file(const char *filename, Node **list) {
+  // Open the file and assign to stream `f`
+  // YOUR CODE HERE
+  if (!f) {
+    perror(PLAYLIST_IN_PATH);
     exit(EXIT_FAILURE);
   }
+  char line[TRACK_TITLE_SIZE];
 
-  succs[token_id(token)][(*next_empty_index_ptr)++] = succ;
+  while (
+      // Read one line from the stream
+      // YOUR CODE HERE
+  ) {
+    remove_newline_if_exists(line);
+
+    auto new_node = (Node *)malloc(sizeof(Node));
+    new_node->next = nullptr;
+    auto data = (Data *)malloc(sizeof(Data));
+    new_node->data = data;
+
+    // Copy line to `new_node` and append `new_node` to `list`
+    // YOUR CODE HERE
+  }
+  fclose(f);
+  return list;
 }
 
-/// Creates tokens on \c book and fills \c tokens and \c succs using
-/// the functions \c token_id and \c append_to_succs.
-void tokenize_and_fill_succs(char *delimiters, char *str) {
-    char* word = strtok(str, delimiters);
-    int id;
-    while (word != NULL) {
-	id = token_id(word);
-	word = strtok(NULL, delimiters);
-	append_to_succs(tokens[id], word);
-    }
+/// Saves `list` contents to the file at `filename`.
+void save_file(const char *filename, Node *list) {
+  // Open file
+  // YOUR CODE HERE
+
+  // Move through the list and save the tracks to the file
+  // Note: You have to cast the data to print the track to the file as follows:
+  // (char *)current->data
+  // Because current->data is a pointer to everything (void*).
+  auto current = playlist;
+  // YOUR CODE HERE
+
+  fclose(f);
+  //// END SOLUTION
 }
 
-/// Returns last character of a string
-char last_char(char *str) {
-    int i = 0;
-    while (str[i] != '\0')
-	i++;
-
-    return str[i - 1];
+void print_tracks(const Node *const playlist) {
+  auto current = playlist;
+  for (size_t i = 1; current; i++, current = current->next)
+    printf("%2ld: %s\n", i, (char *)current->data);
 }
-
-/// Returns whether the token ends with `!`, `?` or `.`.
-int token_ends_a_sentence(char *token) {
-    switch (last_char(token)) {
-	case '!':
-	case '?':
-	case '.':
-	    return 1;
-	default:
-	    return 0;
-    }
-}
-
-/// Returns a random `token_id` that corresponds to a `token` that starts with a
-/// capital letter.
-/// Uses \c tokens and \c tokens_size.
-size_t random_token_id_that_starts_a_sentence() {
-    int id = -1;
-    int rann = RAND(0, tokens_size);
-    while (id == -1) {
-	id = tokens[rann][0] < 'a' ? rann : -1;
-	rann = RAND(0, tokens_size);
-    }
-    return id;
-}
-
-/// Generates a random sentence using \c tokens, \c succs, and \c succs_sizes.
-/// The sentence array will be filled up to \c sentence_size-1 characters using
-/// random tokens until:
-/// - a token is found where \c token_ends_a_sentence
-/// - or more tokens cannot be concatenated to the \c sentence anymore.
-/// Returns the filled sentence array.
-///
-/// @param sentence array what will be used for the sentence.
-//
-//                  Will be overwritten. Does not have to be initialized.
-/// @param sentence_size
-/// @return input sentence pointer
-char *generate_sentence(char *sentence, size_t sentence_size) {
-  size_t current_token_id = random_token_id_that_starts_a_sentence();
-  auto token = tokens[current_token_id];
-
-  sentence[0] = '\0';
-
-  // Calculated sentence length for the next iteration.
-  // Used to stop the loop if the length exceeds sentence size
-  size_t sentence_len_next;
-  // Concatenates random successors to the sentence as long as
-  // `sentence` can hold them.
-  do {
-      strcat(sentence, token);
-      if (token_ends_a_sentence(token))
-	return sentence;
-      token = succs[token_id(token)][RAND(0, succs_sizes[token_id(token)] - 1)];
-      strcat(sentence, " ");
-      sentence_len_next = sizeof(sentence) + sizeof(token);
-  } while (sentence_len_next < sentence_size - 1);
-  return sentence;
-}
-
 
 int main() {
-  replace_non_printable_chars_with_space();
+  load_file(PLAYLIST_IN_PATH, &playlist);
+  print_tracks(playlist);
 
-  char *delimiters = " \n\r";
-  tokenize_and_fill_succs(delimiters, book);
+  // Deletion
+  size_t node_index_to_del = 4;
+  free(delete_at(&playlist, node_index_to_del));
 
-  char sentence[1000];
-  srand(time(NULL)); // Be random each time we run the program
+  // Insertion
+  Node node = {.data = "Tarkan – Şımarık 💋", .next = nullptr};
+  insert_at(&playlist, 3, &node);
 
-  // Generate sentences until we find a question sentence.
-  do {
-    generate_sentence(sentence, sizeof sentence);
-  } while (last_char(sentence) != '?');
-  puts(sentence);
-  puts("");
-
-  // Initialize `sentence` and then generate sentences until we find a sentence
-  // ending with an exclamation mark.
-  do {
-    generate_sentence(sentence, sizeof sentence);
-  } while (last_char(sentence) != '!');
-  puts(sentence);
+  save_file(PLAYLIST_OUT_PATH, playlist);
 }

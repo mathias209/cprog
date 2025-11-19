@@ -1,0 +1,16 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O2",
+      "-std=c23",
+      "-c",
+      "-o",
+      "main.o",
+      "main.c"
+    ],
+    "directory": "/home/skole/cprog",
+    "file": "/home/skole/cprog/main.c",
+    "output": "/home/skole/cprog/main.o"
+  }
+]
