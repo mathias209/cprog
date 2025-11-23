@@ -17,25 +17,29 @@ Node *playlist;
 /// Note: Some lines may not have a newline, e.g., last line in a file,
 /// therefore we have to check for presence.
 char *remove_newline_if_exists(char *line) {
-  // YOUR CODE HERE
-  return line;
+    int i = 0;
+    while (line[i] != '\n' && line[i] != '\0')
+	i++;
+    line[i] = '\0';
+
+    return line;
 }
+
+
 
 /// Reads lines from at `filename`, creates a node for each line and inserts
 /// nodes to `list`.
 Node **load_file(const char *filename, Node **list) {
   // Open the file and assign to stream `f`
   // YOUR CODE HERE
+  FILE *f = fopen(filename, "r");
   if (!f) {
     perror(PLAYLIST_IN_PATH);
     exit(EXIT_FAILURE);
   }
   char line[TRACK_TITLE_SIZE];
 
-  while (
-      // Read one line from the stream
-      // YOUR CODE HERE
-  ) {
+  while (fgets(line, TRACK_TITLE_SIZE, f)) {
     remove_newline_if_exists(line);
 
     auto new_node = (Node *)malloc(sizeof(Node));
@@ -45,6 +49,9 @@ Node **load_file(const char *filename, Node **list) {
 
     // Copy line to `new_node` and append `new_node` to `list`
     // YOUR CODE HERE
+    strcpy(new_node->data, line);
+    insert_at(list, list_len(*list), new_node);
+
   }
   fclose(f);
   return list;
@@ -54,16 +61,20 @@ Node **load_file(const char *filename, Node **list) {
 void save_file(const char *filename, Node *list) {
   // Open file
   // YOUR CODE HERE
+  FILE *f = fopen(filename, "w");
 
   // Move through the list and save the tracks to the file
   // Note: You have to cast the data to print the track to the file as follows:
-  // (char *)current->data
-  // Because current->data is a pointer to everything (void*).
+  // `*(Data *)current->data`, which is the same as `(char *)current->data`.
+  // We need this cast, because `data` is a pointer to everything (`void *`).
   auto current = playlist;
   // YOUR CODE HERE
+  for (int i = 0; i < list_len(list); i++) {
+      fputs(*(Data *)node_at(list, i)->data, f);
+      putc('\n', f);
+  }
 
   fclose(f);
-  //// END SOLUTION
 }
 
 void print_tracks(const Node *const playlist) {
@@ -74,6 +85,7 @@ void print_tracks(const Node *const playlist) {
 
 int main() {
   load_file(PLAYLIST_IN_PATH, &playlist);
+  puts("Loaded tracks:");
   print_tracks(playlist);
 
   // Deletion

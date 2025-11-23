@@ -2,3 +2,4 @@ ignoredir/
 main
 *.o
 .gdbinit
+compile_commands.json
