@@ -1,100 +1,25 @@
-#include "singly_linked_list.h"
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#define TRACK_TITLE_SIZE 60
+#include <time.h>
 
-#define PLAYLIST_IN_PATH "playlist.txt"
-#define PLAYLIST_OUT_PATH "playlist-out.txt"
-// To avoid unnecessary complexity, we fix the filenames instead of getting them
-// through runtime parameters.
+#define ITERATIONS 50000
 
-typedef char Data[TRACK_TITLE_SIZE];
-Node *playlist;
-
-/// Removes trailing newline from the line, if it exists.
-/// Note: Some lines may not have a newline, e.g., last line in a file,
-/// therefore we have to check for presence.
-char *remove_newline_if_exists(char *line) {
-    int i = 0;
-    while (line[i] != '\n' && line[i] != '\0')
-	i++;
-    line[i] = '\0';
-
-    return line;
+int rannum(int min, int max)
+{
+    return rand() % (max + 1 - min) + min;
 }
 
+int main()
+{
+    srand(time(NULL));
 
+    int sums[12];
 
-/// Reads lines from at `filename`, creates a node for each line and inserts
-/// nodes to `list`.
-Node **load_file(const char *filename, Node **list) {
-  // Open the file and assign to stream `f`
-  // YOUR CODE HERE
-  FILE *f = fopen(filename, "r");
-  if (!f) {
-    perror(PLAYLIST_IN_PATH);
-    exit(EXIT_FAILURE);
-  }
-  char line[TRACK_TITLE_SIZE];
+    for (int i = 0; i < ITERATIONS; i++)
+	sums[rannum(0,6) + rannum(0,6)]++;
 
-  while (fgets(line, TRACK_TITLE_SIZE, f)) {
-    remove_newline_if_exists(line);
+    for (int i = 0; i < 11; i++)
+	printf("%d: %d\n", i+2, sums[i+1]);
 
-    auto new_node = (Node *)malloc(sizeof(Node));
-    new_node->next = nullptr;
-    auto data = (Data *)malloc(sizeof(Data));
-    new_node->data = data;
-
-    // Copy line to `new_node` and append `new_node` to `list`
-    // YOUR CODE HERE
-    strcpy(new_node->data, line);
-    insert_at(list, list_len(*list), new_node);
-
-  }
-  fclose(f);
-  return list;
-}
-
-/// Saves `list` contents to the file at `filename`.
-void save_file(const char *filename, Node *list) {
-  // Open file
-  // YOUR CODE HERE
-  FILE *f = fopen(filename, "w");
-
-  // Move through the list and save the tracks to the file
-  // Note: You have to cast the data to print the track to the file as follows:
-  // `*(Data *)current->data`, which is the same as `(char *)current->data`.
-  // We need this cast, because `data` is a pointer to everything (`void *`).
-  auto current = playlist;
-  // YOUR CODE HERE
-  for (int i = 0; i < list_len(list); i++) {
-      fputs(*(Data *)node_at(list, i)->data, f);
-      putc('\n', f);
-  }
-
-  fclose(f);
-}
-
-void print_tracks(const Node *const playlist) {
-  auto current = playlist;
-  for (size_t i = 1; current; i++, current = current->next)
-    printf("%2ld: %s\n", i, (char *)current->data);
-}
-
-int main() {
-  load_file(PLAYLIST_IN_PATH, &playlist);
-  puts("Loaded tracks:");
-  print_tracks(playlist);
-
-  // Deletion
-  size_t node_index_to_del = 4;
-  free(delete_at(&playlist, node_index_to_del));
-
-  // Insertion
-  Node node = {.data = "Tarkan – Şımarık 💋", .next = nullptr};
-  insert_at(&playlist, 3, &node);
-
-  save_file(PLAYLIST_OUT_PATH, playlist);
+    return 0;
 }

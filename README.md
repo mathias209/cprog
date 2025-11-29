@@ -1,2 +1,2 @@
 # cprog
-Playlist
+Two dice simulation
