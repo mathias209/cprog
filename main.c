@@ -13,13 +13,17 @@ int main()
 {
     srand(time(NULL));
 
-    int sums[12];
+    int sums[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     for (int i = 0; i < ITERATIONS; i++)
-	sums[rannum(0,6) + rannum(0,6)]++;
+	sums[rannum(1,6) + rannum(1,6) - 1]++;
 
-    for (int i = 0; i < 11; i++)
+    int total = 0;
+    for (int i = 0; i < 11; i++) {
+	total += sums[i+1];
 	printf("%d: %d\n", i+2, sums[i+1]);
+    }
+    printf("Total (should be 50000): %d\n", total);
 
     return 0;
 }
